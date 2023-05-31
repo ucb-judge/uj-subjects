@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: uj-users
+  zipkin:
+    base-url: ${ZIPKIN_SERVER_URI:http://localhost:9411}
+  datasource:
+    type: org.postgresql.jdbc2.optional.SimpleDataSource
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:mysecretpassword}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_ucb_judge}
+    jpa:
+      hibernate:
+        ddl-auto: none
+
+eureka:
+  client:
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URI:http://localhost:8711/eureka/}
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_SERVER_URI:http://localhost:8090}
+  autodetect-bearer-only: true
+  credentials:
+    secret: ${KEYCLOAK_CLIENT_SECRET:kqrT4z86heBk1wzRVnCyk6LLhnPViUzp}
+  realm: ${KEYCLOAK_REALM:ucb-judge}
+  resource: ${KEYCLOAK_CLIENT_ID:uj-subjects}
+  ssl-required: none
+  use-resource-role-mappings: false
+  security-constraints:
+
