@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import ucb.judge.ujsubjects.dao.Subject
 import ucb.judge.ujsubjects.dao.repository.CampusMajorRepository
 import ucb.judge.ujsubjects.dao.repository.ProfessorRepository
 import ucb.judge.ujsubjects.dao.repository.SubjectRepository
@@ -80,5 +81,26 @@ class SubjectsBl @Autowired constructor(
         subjectDto.professor = ProfessorDto(keycloakUserDto.firstName, keycloakUserDto.lastName)
         logger.info("Finishing the call to update subject by id")
         return subjectDto
+    }
+
+    fun createSubject(newSubjectDto: NewSubjectDto): Long {
+        logger.info("Starting the call to create subject")
+        val token = "Bearer ${keycloakBl.getToken()}"
+        val kcUuid = KeycloakSecurityContextHolder.getSubject() ?: throw SubjectsException(HttpStatus.UNAUTHORIZED, "Unauthorized")
+        val professor = professorRepository.findByKcUuid(kcUuid) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Professor not found")
+        logger.info("Subject created by professor: ${professor.kcUuid}")
+        val campusMajorId = newSubjectDto.campusMajorId ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Campus major id is required")
+        val campusMajor = campusMajorRepository.findByCampusMajorId(campusMajorId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Campus major not found")
+        val subject = Subject ()
+        subject.name = newSubjectDto.name ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Name is required")
+        subject.code = newSubjectDto.code ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Code is required")
+        subject.campusMajor = campusMajor
+        subject.dateFrom = newSubjectDto.dateFrom ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Date from is required")
+        subject.dateTo = newSubjectDto.dateTo ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Date to is required")
+        subject.professor = professor
+        subject.status = true
+        val savedSubject = subjectRepository.save(subject)
+        logger.info("Finishing the call to create subject")
+        return savedSubject.subjectId
     }
 }

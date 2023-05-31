@@ -4,12 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ucb.judge.ujsubjects.bl.SubjectsBl
 import ucb.judge.ujsubjects.dto.NewSubjectDto
 import ucb.judge.ujsubjects.dto.ResponseDto
@@ -48,7 +43,17 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         logger.info("Starting the API call to update subject by id")
         val result: SubjectDto = subjectsBl.updateSubject(subjectId, newSubjectDto)
         logger.info("Finishing the API call to update subject by id")
-        return ResponseEntity.ok(ResponseDto(result, "", true))
+        return ResponseEntity.ok(ResponseDto(result, "Subject updated successfully", true))
+    }
+
+    @PostMapping()
+    fun createSubject(
+        @RequestBody newSubjectDto: NewSubjectDto
+    ): ResponseEntity<ResponseDto<Long>> {
+        logger.info("Starting the API call to create subject")
+        val newSubjectId: Long = subjectsBl.createSubject(newSubjectDto)
+        logger.info("Finishing the API call to create subject")
+        return ResponseEntity.ok(ResponseDto(newSubjectId, "Subject created successfully", true))
     }
 
 }

@@ -38,6 +38,7 @@ keycloak:
           omitted-methods:
             - OPTIONS
           patterns:
+            - /api/v1/subjects
             - /api/v1/subjects/*
     - auth-roles:
       - student
