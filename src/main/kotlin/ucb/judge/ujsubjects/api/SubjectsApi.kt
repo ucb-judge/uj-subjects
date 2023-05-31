@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*
 import ucb.judge.ujsubjects.bl.SubjectsBl
 import ucb.judge.ujsubjects.dto.NewSubjectDto
 import ucb.judge.ujsubjects.dto.ResponseDto
+import ucb.judge.ujsubjects.dto.StudentDto
 import ucb.judge.ujsubjects.dto.SubjectDto
 
 @Service
@@ -54,6 +55,25 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         val newSubjectId: Long = subjectsBl.createSubject(newSubjectDto)
         logger.info("Finishing the API call to create subject")
         return ResponseEntity.ok(ResponseDto(newSubjectId, "Subject created successfully", true))
+    }
+
+    @DeleteMapping("{subjectId}")
+    fun deleteSubject(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<SubjectDto>> {
+        logger.info("Starting the API call to delete subject by id")
+        subjectsBl.deleteSubject(subjectId)
+        logger.info("Finishing the API call to delete subject by id")
+        return ResponseEntity.ok(ResponseDto(null, "Subject deleted successfully", true))
+    }
+
+    @PostMapping("{subjectId}/users")
+    fun addStudentToSubject(
+        @PathVariable subjectId: Long,
+        @RequestBody studentDto: StudentDto
+    ): ResponseEntity<ResponseDto<Long>> {
+        logger.info("Starting the API call to add user to subject")
+        val newStudentSubjectId: Long = subjectsBl.addStudentToSubject(subjectId, studentDto.kcUuid)
+        logger.info("Finishing the API call to add user to subject")
+        return ResponseEntity.ok(ResponseDto(newStudentSubjectId, "User added to subject successfully", true))
     }
 
 }
