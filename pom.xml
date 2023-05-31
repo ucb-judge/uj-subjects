@@ -8,7 +8,7 @@
 		<version>2.7.12</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ucbjudge</groupId>
+	<groupId>ucb.judge</groupId>
 	<artifactId>ujsubjects</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>uj-subjects</name>

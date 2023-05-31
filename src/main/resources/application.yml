@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8085
 
 spring:
   application:
@@ -25,7 +25,7 @@ keycloak:
   auth-server-url: ${KEYCLOAK_SERVER_URI:http://localhost:8090}
   autodetect-bearer-only: true
   credentials:
-    secret: ${KEYCLOAK_CLIENT_SECRET:kqrT4z86heBk1wzRVnCyk6LLhnPViUzp}
+    secret: ${KEYCLOAK_CLIENT_SECRET:zejgeq1Lz6rwLUb79fBSG9YVW6uMffrb}
   realm: ${KEYCLOAK_REALM:ucb-judge}
   resource: ${KEYCLOAK_CLIENT_ID:uj-subjects}
   ssl-required: none
