@@ -1,7 +1,6 @@
 package ucb.judge.ujsubjects.mapper
 
 import ucb.judge.ujsubjects.dao.Subject
-import ucb.judge.ujsubjects.dto.ProfessorDto
 import ucb.judge.ujsubjects.dto.SubjectDto
 
 class SubjectMapper {

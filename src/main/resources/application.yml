@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: uj-users
+    name: uj-subjects
   zipkin:
     base-url: ${ZIPKIN_SERVER_URI:http://localhost:9411}
   datasource:
@@ -31,4 +31,23 @@ keycloak:
   ssl-required: none
   use-resource-role-mappings: false
   security-constraints:
+    - auth-roles:
+        - professor
+      security-collections:
+        - name: Subject CRUD operations
+          omitted-methods:
+            - OPTIONS
+          patterns:
+            - /api/v1/subjects/*
+    - auth-roles:
+      - student
+      - professor
+      - uj-subjects-access
+      security-collections:
+        - name: Get subjects
+          methods:
+            - GET
+          patterns:
+            - /api/v1/subjects
+# TODO: CHECK IF STUDENT IS LOCKED FOR CRUD OPERATIONS
 
