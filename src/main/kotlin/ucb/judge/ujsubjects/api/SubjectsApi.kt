@@ -76,4 +76,15 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(newStudentSubjectId, "User added to subject successfully", true))
     }
 
+    @DeleteMapping("{subjectId}/users")
+    fun deleteStudentFromSubject(
+        @PathVariable subjectId: Long,
+        @RequestBody studentDto: StudentDto
+    ): ResponseEntity<ResponseDto<Long>> {
+        logger.info("Starting the API call to delete user from subject")
+        subjectsBl.deleteStudentFromSubject(subjectId, studentDto.kcUuid)
+        logger.info("Finishing the API call to delete user from subject")
+        return ResponseEntity.ok(ResponseDto(null, "User deleted from subject successfully", true))
+    }
+
 }

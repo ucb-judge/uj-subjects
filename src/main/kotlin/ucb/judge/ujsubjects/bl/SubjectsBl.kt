@@ -145,6 +145,19 @@ class SubjectsBl @Autowired constructor(
         return savedStudentSubject.studentSubjectId
     }
 
+    fun deleteStudentFromSubject(subjectId: Long, kcUuid: String?) {
+        logger.info("Starting the call to delete student from subject")
+        if (kcUuid == null) {
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "KcUuid is required")
+        }
+        val student = checkStudent(kcUuid)
+        val subject = subjectRepository.findBySubjectId(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val studentSubject = studentSubjectRepository.findByStudentAndSubject(student, subject) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Student not found in subject")
+        studentSubject.status = false
+        studentSubjectRepository.save(studentSubject)
+        logger.info("Finishing the call to delete student from subject")
+    }
+
     fun checkStudent(kcUuid: String): Student {
         val token = "Bearer ${keycloakBl.getToken()}"
         val studentId = ujUsersService.getStudentByKcUuid(kcUuid, token).data ?: throw SubjectsException(
