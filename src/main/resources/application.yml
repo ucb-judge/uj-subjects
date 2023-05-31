@@ -50,5 +50,6 @@ keycloak:
             - GET
           patterns:
             - /api/v1/subjects
+            - /api/v1/subjects/*
 # TODO: CHECK IF STUDENT IS LOCKED FOR CRUD OPERATIONS
 

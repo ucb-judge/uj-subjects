@@ -9,10 +9,7 @@ import ucb.judge.ujsubjects.dao.Student
 import ucb.judge.ujsubjects.dao.StudentSubject
 import ucb.judge.ujsubjects.dao.Subject
 import ucb.judge.ujsubjects.dao.repository.*
-import ucb.judge.ujsubjects.dto.KeycloakUserDto
-import ucb.judge.ujsubjects.dto.NewSubjectDto
-import ucb.judge.ujsubjects.dto.ProfessorDto
-import ucb.judge.ujsubjects.dto.SubjectDto
+import ucb.judge.ujsubjects.dto.*
 import ucb.judge.ujsubjects.exception.SubjectsException
 import ucb.judge.ujsubjects.mapper.SubjectMapper
 import ucb.judge.ujsubjects.service.UjUsersService
@@ -34,13 +31,9 @@ class SubjectsBl @Autowired constructor(
 
     fun findAllSubjects(): List<SubjectDto> {
         logger.info("Starting the call to find all subjects")
-        val token = "Bearer ${keycloakBl.getToken()}"
         val subjects = subjectRepository.findAll()
         val subjectsDto: List<SubjectDto> = subjects.map { subject ->
-            val keycloakUserDto: KeycloakUserDto = ujUsersService.getProfile(subject.professor!!.kcUuid, token).data!!
-            val subjectDto: SubjectDto = SubjectMapper.entityToDto(subject)
-            subjectDto.professor = ProfessorDto(keycloakUserDto.id, keycloakUserDto.firstName, keycloakUserDto.lastName)
-            subjectDto
+            subjectToSubjectDto(subject)
         }
         logger.info("Finishing the call to find all subjects")
         return subjectsDto
@@ -64,10 +57,10 @@ class SubjectsBl @Autowired constructor(
         logger.info("Starting the call to update subject by id")
         val professor = checkProfessor()
         logger.info("Subject updated by professor: ${professor.kcUuid}")
-        val subject = subjectRepository.findBySubjectId(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
 
         val campusMajor = if (newSubjectDto.campusMajorId != null) {
-            campusMajorRepository.findByCampusMajorId(newSubjectDto.campusMajorId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Campus major not found")
+            campusMajorRepository.findByCampusMajorIdAndStatusIsTrue(newSubjectDto.campusMajorId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Campus major not found")
         } else {
             null
         }
@@ -77,9 +70,7 @@ class SubjectsBl @Autowired constructor(
         subject.dateFrom = newSubjectDto.dateFrom ?: subject.dateFrom
         subject.dateTo = newSubjectDto.dateTo ?: subject.dateTo
         subjectRepository.save(subject)
-        val subjectDto: SubjectDto = SubjectMapper.entityToDto(subject)
-        val keycloakUserDto: KeycloakUserDto = ujUsersService.getProfile(subject.professor!!.kcUuid, "Bearer ${keycloakBl.getToken()}").data!!
-        subjectDto.professor = ProfessorDto(keycloakUserDto.id, keycloakUserDto.firstName, keycloakUserDto.lastName)
+        val subjectDto = subjectToSubjectDto(subject)
         logger.info("Finishing the call to update subject by id")
         return subjectDto
     }
@@ -89,7 +80,7 @@ class SubjectsBl @Autowired constructor(
         val professor: Professor = checkProfessor()
         logger.info("Subject created by professor: ${professor.kcUuid}")
         val campusMajorId = newSubjectDto.campusMajorId ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Campus major id is required")
-        val campusMajor = campusMajorRepository.findByCampusMajorId(campusMajorId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Campus major not found")
+        val campusMajor = campusMajorRepository.findByCampusMajorIdAndStatusIsTrue(campusMajorId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Campus major not found")
         val subject = Subject ()
         subject.name = newSubjectDto.name ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Name is required")
         subject.code = newSubjectDto.code ?: throw SubjectsException(HttpStatus.BAD_REQUEST, "Code is required")
@@ -107,35 +98,52 @@ class SubjectsBl @Autowired constructor(
         logger.info("Starting the call to delete subject by id")
         val professor = checkProfessor()
         logger.info("Subject deleted by professor: ${professor.kcUuid}")
-        val subject = subjectRepository.findBySubjectId(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
         subject.status = false
         subjectRepository.save(subject)
         logger.info("Finishing the call to delete subject by id")
     }
 
-    fun checkProfessor(): Professor {
+    fun checkProfessor(kcUuid:String = ""): Professor {
         val token = "Bearer ${keycloakBl.getToken()}"
-        val kcUuid = KeycloakSecurityContextHolder.getSubject() ?: throw SubjectsException(
-            HttpStatus.UNAUTHORIZED,
-            "Unauthorized"
-        )
-        val professorId = ujUsersService.getProfessorByKcUuid(kcUuid, token).data ?: throw SubjectsException(
+        val pKcUuid = kcUuid.ifEmpty {
+            KeycloakSecurityContextHolder.getSubject() ?: throw SubjectsException(
+                HttpStatus.UNAUTHORIZED,
+                "Unauthorized"
+            )
+        }
+
+        val professorId = ujUsersService.getProfessorByKcUuid(pKcUuid, token).data ?: throw SubjectsException(
             HttpStatus.NOT_FOUND,
             "Professor not found in Keycloak"
         )
-        return professorRepository.findByProfessorId(professorId) ?: throw SubjectsException(
+        return professorRepository.findByProfessorIdAndStatusIsTrue(professorId) ?: throw SubjectsException(
             HttpStatus.NOT_FOUND,
             "Professor not found"
         )
     }
 
+    fun findAllStudentsBySubjectId (subjectId: Long): List<StudentDto> {
+        logger.info("Starting the call to find all students by subject id")
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val studentSubjects = studentSubjectRepository.findAllBySubjectAndStatusIsTrue(subject)
+        val studentsDto: List<StudentDto> = studentSubjects.map { studentSubject ->
+            val student = studentSubject.student
+            studentToStudentDto(student!!)
+        }
+        logger.info("Finishing the call to find all students by subject id")
+        return studentsDto
+    }
     fun addStudentToSubject(subjectId: Long, kcUuid: String?): Long {
         logger.info("Starting the call to add student to subject")
         if (kcUuid == null) {
             throw SubjectsException(HttpStatus.BAD_REQUEST, "KcUuid is required")
         }
         val student = checkStudent(kcUuid)
-        val subject = subjectRepository.findBySubjectId(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        studentSubjectRepository.findByStudentAndSubjectAndStatusIsTrue(student, subject)?.let {
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "Student already in subject")
+        }
         val studentSubject = StudentSubject()
         studentSubject.student = student
         studentSubject.subject = subject
@@ -151,8 +159,8 @@ class SubjectsBl @Autowired constructor(
             throw SubjectsException(HttpStatus.BAD_REQUEST, "KcUuid is required")
         }
         val student = checkStudent(kcUuid)
-        val subject = subjectRepository.findBySubjectId(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
-        val studentSubject = studentSubjectRepository.findByStudentAndSubject(student, subject) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Student not found in subject")
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val studentSubject = studentSubjectRepository.findByStudentAndSubjectAndStatusIsTrue(student, subject) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Student not found in subject")
         studentSubject.status = false
         studentSubjectRepository.save(studentSubject)
         logger.info("Finishing the call to delete student from subject")
@@ -164,9 +172,40 @@ class SubjectsBl @Autowired constructor(
             HttpStatus.NOT_FOUND,
             "Student not found in Keycloak"
         )
-        return studentRepository.findByStudentId(studentId) ?: throw SubjectsException(
+        return studentRepository.findByStudentIdAndStatusIsTrue(studentId) ?: throw SubjectsException(
             HttpStatus.NOT_FOUND,
             "Student not found"
         )
+    }
+
+    fun updateSubjectProfessor(subjectId: Long, kcUuid: String?): SubjectDto{
+        logger.info("Starting the call to update subject professor")
+        if (kcUuid == null) {
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "KcUuid is required")
+        }
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
+        val professor = checkProfessor(kcUuid)
+        logger.info("Subject updated for professor: ${professor.kcUuid}")
+        subject.professor = professor
+        subjectRepository.save(subject)
+        val subjectDto = subjectToSubjectDto(subject)
+        logger.info("Finishing the call to update subject professor")
+        return subjectDto
+    }
+
+    fun subjectToSubjectDto(subject: Subject): SubjectDto {
+        val subjectDto: SubjectDto = SubjectMapper.entityToDto(subject)
+        val keycloakUserDto: KeycloakUserDto = ujUsersService.getProfile(subject.professor!!.kcUuid, "Bearer ${keycloakBl.getToken()}").data!!
+        subjectDto.professor = ProfessorDto(keycloakUserDto.id, keycloakUserDto.firstName, keycloakUserDto.lastName)
+        return subjectDto
+    }
+
+    fun studentToStudentDto(student: Student): StudentDto {
+        val studentDto: StudentDto = StudentDto(student.kcUuid, "", "", "")
+        val keycloakUserDto: KeycloakUserDto = ujUsersService.getProfile(student.kcUuid, "Bearer ${keycloakBl.getToken()}").data!!
+        studentDto.firstName = keycloakUserDto.firstName
+        studentDto.lastName = keycloakUserDto.lastName
+        studentDto.email = keycloakUserDto.email
+        return studentDto
     }
 }

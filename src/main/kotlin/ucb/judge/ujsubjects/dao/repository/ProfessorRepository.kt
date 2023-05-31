@@ -7,5 +7,5 @@ import ucb.judge.ujsubjects.dao.Professor
 @Repository
 interface ProfessorRepository: JpaRepository<Professor, Long> {
 
-    fun findByProfessorId(professorId: Long): Professor?
+    fun findByProfessorIdAndStatusIsTrue(professorId: Long): Professor?
 }

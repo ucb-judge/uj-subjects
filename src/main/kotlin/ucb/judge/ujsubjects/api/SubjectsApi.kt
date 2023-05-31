@@ -6,10 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 import ucb.judge.ujsubjects.bl.SubjectsBl
-import ucb.judge.ujsubjects.dto.NewSubjectDto
-import ucb.judge.ujsubjects.dto.ResponseDto
-import ucb.judge.ujsubjects.dto.StudentDto
-import ucb.judge.ujsubjects.dto.SubjectDto
+import ucb.judge.ujsubjects.dto.*
 
 @Service
 @RestController
@@ -19,7 +16,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
     companion object {
         private val logger = LoggerFactory.getLogger(SubjectsApi::class.java.name)
     }
-
+//    TODO: ADD PAGINATION
     @GetMapping()
     fun findAll(): ResponseEntity<ResponseDto<List<SubjectDto>>> {
         logger.info("Starting the API call to find all subjects")
@@ -65,7 +62,16 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(null, "Subject deleted successfully", true))
     }
 
-    @PostMapping("{subjectId}/users")
+//    TODO: ADD PAGINATION
+    @GetMapping("{subjectId}/student")
+    fun findAllStudentsBySubjectId(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<List<StudentDto>>> {
+        logger.info("Starting the API call to find all students by subject id")
+        val result: List<StudentDto> = subjectsBl.findAllStudentsBySubjectId(subjectId)
+        logger.info("Finishing the API call to find all students by subject id")
+        return ResponseEntity.ok(ResponseDto(result, "", true))
+    }
+
+    @PostMapping("{subjectId}/student")
     fun addStudentToSubject(
         @PathVariable subjectId: Long,
         @RequestBody studentDto: StudentDto
@@ -76,15 +82,25 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(newStudentSubjectId, "User added to subject successfully", true))
     }
 
-    @DeleteMapping("{subjectId}/users")
+    @DeleteMapping("{subjectId}/student")
     fun deleteStudentFromSubject(
         @PathVariable subjectId: Long,
         @RequestBody studentDto: StudentDto
     ): ResponseEntity<ResponseDto<Long>> {
-        logger.info("Starting the API call to delete user from subject")
+        logger.info("Starting the API call to delete student from subject")
         subjectsBl.deleteStudentFromSubject(subjectId, studentDto.kcUuid)
-        logger.info("Finishing the API call to delete user from subject")
-        return ResponseEntity.ok(ResponseDto(null, "User deleted from subject successfully", true))
+        logger.info("Finishing the API call to delete student from subject")
+        return ResponseEntity.ok(ResponseDto(null, "Student deleted from subject successfully", true))
     }
 
+    @PutMapping("{subjectId}/professor")
+    fun updateSubjectProfessor(
+        @PathVariable subjectId: Long,
+        @RequestBody professorDto: ProfessorDto
+    ): ResponseEntity<ResponseDto<SubjectDto>> {
+        logger.info("Starting the API call to update subject professor")
+        val subjectDto: SubjectDto = subjectsBl.updateSubjectProfessor(subjectId, professorDto.kcUuid)
+        logger.info("Finishing the API call to update subject professor")
+        return ResponseEntity.ok(ResponseDto(subjectDto, "Subject professor updated successfully", true))
+    }
 }
