@@ -1,5 +1,5 @@
 server:
-  port: 8085
+  port: ${PORT:8085}
 
 spring:
   application:
@@ -33,6 +33,7 @@ keycloak:
   security-constraints:
     - auth-roles:
         - professor
+        - uj-subjects-access
       security-collections:
         - name: Subject CRUD operations
           omitted-methods:
@@ -51,5 +52,4 @@ keycloak:
           patterns:
             - /api/v1/subjects
             - /api/v1/subjects/*
-# TODO: CHECK IF STUDENT IS LOCKED FOR CRUD OPERATIONS
 

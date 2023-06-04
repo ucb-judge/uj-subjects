@@ -7,7 +7,7 @@ class KeycloakTokenReqDto {
     var grantType: String = "password"
 
     @FormProperty("client_id")
-    var clientId: String = "ujudge"
+    var clientId: String = "ujsubjects"
 
     @FormProperty("client_secret")
     var secret: String = "mysecret"
