@@ -7,7 +7,7 @@ data class SubjectDto (
     var professor: ProfessorDto? = null,
     val name: String = "",
     val code: String = "",
-    val campusMajor: CampusMajorDto,
+    val campusMajor: CampusMajorDto? = null,
     val dateFrom: Date? = null,
     val dateTo: Date? = null
 )

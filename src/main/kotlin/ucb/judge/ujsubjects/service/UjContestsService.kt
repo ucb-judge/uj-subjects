@@ -48,7 +48,7 @@ interface UjContestsService {
         @RequestHeader("Authorization") token: String
     ): ResponseDto<List<ContestScoreboardDto>>
 
-    @PostMapping("/api/v1/{contestId}/register/{kcUuid}")
+    @PostMapping("/api/v1/contests/{contestId}/register/{kcUuid}")
     fun registerToContest(
         @PathVariable kcUuid: String,
         @PathVariable contestId: Long,

@@ -7,4 +7,5 @@ import ucb.judge.ujsubjects.dao.Student
 @Repository
 interface StudentRepository: JpaRepository<Student, Long> {
     fun findByStudentIdAndStatusIsTrue(studentId: Long): Student?
+    fun findByKcUuidAndStatusIsTrue(kcUuid: String): Student?
 }

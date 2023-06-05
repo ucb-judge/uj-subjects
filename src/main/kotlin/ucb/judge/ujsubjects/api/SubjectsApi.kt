@@ -32,7 +32,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
      * @param subjectId
      * @return ResponseEntity<ResponseDto<SubjectDto>>
      */
-    @GetMapping("{subjectId}")
+    @GetMapping("/{subjectId}")
     fun findBySubjectId(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<SubjectDto>> {
         logger.info("Starting the API call to find subject by id")
         val result: SubjectDto = subjectsBl.findBySubjectId(subjectId)
@@ -45,7 +45,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
      * @param newSubjectDto
      * @return ResponseEntity<ResponseDto<SubjectDto>>
      */
-    @PutMapping("{subjectId}")
+    @PutMapping("/{subjectId}")
     fun updateSubject(
         @PathVariable subjectId: Long,
         @RequestBody newSubjectDto: NewSubjectDto
@@ -74,7 +74,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
      * @param subjectId
      * @return ResponseEntity<ResponseDto<SubjectDto>>
      */
-    @DeleteMapping("{subjectId}")
+    @DeleteMapping("/{subjectId}")
     fun deleteSubject(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<SubjectDto>> {
         logger.info("Starting the API call to delete subject by id")
         subjectsBl.deleteSubject(subjectId)
@@ -83,7 +83,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
     }
 
 
-    @GetMapping("{subjectId}/student")
+    @GetMapping("/{subjectId}/student")
     fun findAllStudentsBySubjectId(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<List<StudentDto>>> {
         logger.info("Starting the API call to find all students by subject id")
         val result: List<StudentDto> = subjectsBl.findAllStudentsBySubjectId(subjectId)
@@ -91,7 +91,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(result, "", true))
     }
 
-    @PostMapping("{subjectId}/student")
+    @PostMapping("/{subjectId}/student")
     fun addStudentToSubject(
         @PathVariable subjectId: Long,
         @RequestBody studentDto: StudentDto
@@ -102,7 +102,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(newStudentSubjectId, "User added to subject successfully", true))
     }
 
-    @DeleteMapping("{subjectId}/student")
+    @DeleteMapping("/{subjectId}/student")
     fun deleteStudentFromSubject(
         @PathVariable subjectId: Long,
         @RequestBody studentDto: StudentDto
@@ -113,7 +113,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(null, "Student deleted from subject successfully", true))
     }
 
-    @PutMapping("{subjectId}/professor")
+    @PutMapping("/{subjectId}/professor")
     fun updateSubjectProfessor(
         @PathVariable subjectId: Long,
         @RequestBody professorDto: ProfessorDto

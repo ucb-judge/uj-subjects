@@ -6,7 +6,6 @@ import ucb.judge.ujsubjects.dto.SubjectDto
 class SubjectMapper {
     companion object {
         fun entityToDto(subject: Subject): SubjectDto {
-
             return SubjectDto(
                 subjectId = subject.subjectId,
                 name = subject.name,

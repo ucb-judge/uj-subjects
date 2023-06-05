@@ -10,7 +10,6 @@ import ucb.judge.ujsubjects.dao.Subject
 interface StudentSubjectRepository : JpaRepository<StudentSubject, Long> {
     fun findAllBySubjectAndStatusIsTrue(subject:Subject): List<StudentSubject>
     fun findByStudentAndSubjectAndStatusIsTrue(student:Student, subject:Subject): StudentSubject?
-    fun findAllBySubjectSubjectIdAndStatusIsTrue(subjectId:Long): List<StudentSubject>
-    fun findBySubjectSubjectIdAndStudentStudentIdAndStatusIsTrue (subjectId:Long, studentId:Long): StudentSubject?
+    fun findBySubjectAndStudentAndStatusIsTrue (subject: Subject, student:Student): StudentSubject?
 
 }

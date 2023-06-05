@@ -56,7 +56,7 @@ class SubjectsBl @Autowired constructor(
     fun updateSubject(subjectId: Long, newSubjectDto: NewSubjectDto): SubjectDto {
         logger.info("Starting the call to update subject by id")
         val professor = checkProfessor()
-        if (subjectRepository.findBySubjectIdAndProfessorProfessorIdAndStatusIsTrue(subjectId, professor.professorId) == null) {
+        if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
         }
         logger.info("Subject updated by professor: ${professor.kcUuid}")
@@ -100,7 +100,7 @@ class SubjectsBl @Autowired constructor(
     fun deleteSubject(subjectId: Long) {
         logger.info("Starting the call to delete subject by id")
         val professor = checkProfessor()
-        if (subjectRepository.findBySubjectIdAndProfessorProfessorIdAndStatusIsTrue(subjectId, professor.professorId) == null) {
+        if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
         }
         logger.info("Subject deleted by professor: ${professor.kcUuid}")

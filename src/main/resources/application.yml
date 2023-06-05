@@ -55,7 +55,7 @@ keycloak:
     - auth-roles:
       - student
       - professor
-      - uj-practice-access
+      - uj-subjects-access
       security-collections:
         - name: Get practices
           methods:
@@ -64,7 +64,7 @@ keycloak:
             - /api/v1/practices/*
     - auth-roles:
       - professor
-      - uj-contest-access
+      - uj-subjects-access
       security-collections:
         - name: Post practices
           methods:
