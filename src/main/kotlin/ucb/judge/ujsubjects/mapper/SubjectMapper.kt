@@ -8,7 +8,7 @@ class SubjectMapper {
         fun entityToDto(subject: Subject): SubjectDto {
 
             return SubjectDto(
-                id = subject.subjectId,
+                subjectId = subject.subjectId,
                 name = subject.name,
                 code = subject.code,
                 campusMajor = CampusMajorMapper.entityToDto(subject.campusMajor!!),

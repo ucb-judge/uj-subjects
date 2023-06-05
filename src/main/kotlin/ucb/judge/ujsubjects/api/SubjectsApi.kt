@@ -16,7 +16,10 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
     companion object {
         private val logger = LoggerFactory.getLogger(SubjectsApi::class.java.name)
     }
-//    TODO: ADD PAGINATION
+
+    /** Get all subjects
+     * @return ResponseEntity<ResponseDto<List<SubjectDto>>>
+     */
     @GetMapping()
     fun findAll(): ResponseEntity<ResponseDto<List<SubjectDto>>> {
         logger.info("Starting the API call to find all subjects")
@@ -25,6 +28,10 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(result, "", true))
     }
 
+    /** Get subject by id
+     * @param subjectId
+     * @return ResponseEntity<ResponseDto<SubjectDto>>
+     */
     @GetMapping("{subjectId}")
     fun findBySubjectId(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<SubjectDto>> {
         logger.info("Starting the API call to find subject by id")
@@ -33,6 +40,11 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(result, "", true))
     }
 
+    /** Update subject by id
+     * @param subjectId
+     * @param newSubjectDto
+     * @return ResponseEntity<ResponseDto<SubjectDto>>
+     */
     @PutMapping("{subjectId}")
     fun updateSubject(
         @PathVariable subjectId: Long,
@@ -44,6 +56,10 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(result, "Subject updated successfully", true))
     }
 
+    /** Create subject
+     * @param newSubjectDto
+     * @return ResponseEntity<ResponseDto<Long>>
+     */
     @PostMapping()
     fun createSubject(
         @RequestBody newSubjectDto: NewSubjectDto
@@ -54,6 +70,10 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(newSubjectId, "Subject created successfully", true))
     }
 
+    /** Delete subject by id
+     * @param subjectId
+     * @return ResponseEntity<ResponseDto<SubjectDto>>
+     */
     @DeleteMapping("{subjectId}")
     fun deleteSubject(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<SubjectDto>> {
         logger.info("Starting the API call to delete subject by id")
@@ -62,7 +82,7 @@ class SubjectsApi @Autowired constructor(private val subjectsBl: SubjectsBl) {
         return ResponseEntity.ok(ResponseDto(null, "Subject deleted successfully", true))
     }
 
-//    TODO: ADD PAGINATION
+
     @GetMapping("{subjectId}/student")
     fun findAllStudentsBySubjectId(@PathVariable subjectId: Long): ResponseEntity<ResponseDto<List<StudentDto>>> {
         logger.info("Starting the API call to find all students by subject id")

@@ -56,6 +56,9 @@ class SubjectsBl @Autowired constructor(
     fun updateSubject(subjectId: Long, newSubjectDto: NewSubjectDto): SubjectDto {
         logger.info("Starting the call to update subject by id")
         val professor = checkProfessor()
+        if (subjectRepository.findBySubjectIdAndProfessorProfessorIdAndStatusIsTrue(subjectId, professor.professorId) == null) {
+            throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
+        }
         logger.info("Subject updated by professor: ${professor.kcUuid}")
         val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
 
@@ -97,6 +100,9 @@ class SubjectsBl @Autowired constructor(
     fun deleteSubject(subjectId: Long) {
         logger.info("Starting the call to delete subject by id")
         val professor = checkProfessor()
+        if (subjectRepository.findBySubjectIdAndProfessorProfessorIdAndStatusIsTrue(subjectId, professor.professorId) == null) {
+            throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
+        }
         logger.info("Subject deleted by professor: ${professor.kcUuid}")
         val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(subjectId) ?: throw SubjectsException(HttpStatus.NOT_FOUND, "Subject not found")
         subject.status = false
@@ -112,7 +118,6 @@ class SubjectsBl @Autowired constructor(
                 "Unauthorized"
             )
         }
-
         val professorId = ujUsersService.getProfessorByKcUuid(pKcUuid, token).data ?: throw SubjectsException(
             HttpStatus.NOT_FOUND,
             "Professor not found in Keycloak"
@@ -201,7 +206,7 @@ class SubjectsBl @Autowired constructor(
     }
 
     fun studentToStudentDto(student: Student): StudentDto {
-        val studentDto: StudentDto = StudentDto(student.kcUuid, "", "", "")
+        val studentDto = StudentDto(student.kcUuid, "", "", "")
         val keycloakUserDto: KeycloakUserDto = ujUsersService.getProfile(student.kcUuid, "Bearer ${keycloakBl.getToken()}").data!!
         studentDto.firstName = keycloakUserDto.firstName
         studentDto.lastName = keycloakUserDto.lastName
