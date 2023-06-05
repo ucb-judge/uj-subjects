@@ -72,7 +72,6 @@ class PracticesBl @Autowired constructor(
         if (contest.isPublic) {
             throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
         }
-        // TODO: Prevent adding the same problem twice
 
         val professor = checkProfessor()
         subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(
@@ -167,46 +166,29 @@ class PracticesBl @Autowired constructor(
             "Professor not found"
         )
     }
-    fun checkStudent(kcUuid: String = ""): Student {
-        logger.info("Check student Business Logic initiated")
-        val token = "Bearer ${keycloakBl.getToken()}"
-        val pKcUuid = kcUuid.ifEmpty {
-            KeycloakSecurityContextHolder.getSubject() ?: throw SubjectsException(
-                HttpStatus.UNAUTHORIZED,
-                "Unauthorized"
-            )
-        }
-        val studentId = ujUsersService.getStudentByKcUuid(pKcUuid, token).data ?: throw SubjectsException(
-            HttpStatus.NOT_FOUND,
-            "Student not found in Keycloak"
-        )
-        logger.info("Check student Business Logic finished")
-        return studentRepository.findByStudentIdAndStatusIsTrue(studentId) ?: throw SubjectsException(
-            HttpStatus.NOT_FOUND,
-            "Student not found"
-        )
-    }
 
     fun checkPracticeAccess(practiceId: Long, token: String) {
         val professor = professorRepository.findByKcUuidAndStatusIsTrue(KeycloakSecurityContextHolder.getSubject()!!)
         val student = studentRepository.findByKcUuidAndStatusIsTrue(KeycloakSecurityContextHolder.getSubject()!!)
         if (professor == null && student == null) {
+            logger.warn("User is not a professor nor a student")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
         }
-        if (professor != null && subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(
-                ujContestsService.getContestById(practiceId, token).data!!.subject!!.subjectId!!,
-                professor
-            ) == null
-        ) {
-            throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
+        val contest = ujContestsService.getContestById(practiceId, token).data ?: throw SubjectsException(
+            HttpStatus.NOT_FOUND,
+            "Practice not found"
+        )
+        if (contest.isPublic) {
+            throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
         }
-        if (student != null && studentSubjectRepository.findBySubjectAndStudentAndStatusIsTrue(
-                subjectRepository.findBySubjectIdAndStatusIsTrue(
-                    ujContestsService.getContestById(practiceId, token).data!!.subject!!.subjectId!!
-                )!!,
-                student
-            ) == null
+        val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(contest.subject!!.subjectId!!)
+        if ((professor != null) && (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subject!!.subjectId, professor) != null)
         ) {
+            return
+        } else if (student != null && studentSubjectRepository.findBySubjectAndStudentAndStatusIsTrue(subject!!, student) != null
+        ) {
+            return
+        } else {
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
         }
     }
