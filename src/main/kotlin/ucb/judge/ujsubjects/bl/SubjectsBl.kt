@@ -14,6 +14,7 @@ import ucb.judge.ujsubjects.exception.SubjectsException
 import ucb.judge.ujsubjects.mapper.SubjectMapper
 import ucb.judge.ujsubjects.service.UjUsersService
 import ucb.judge.ujsubjects.util.KeycloakSecurityContextHolder
+import kotlin.math.log
 
 @Service
 class SubjectsBl @Autowired constructor(
@@ -57,6 +58,7 @@ class SubjectsBl @Autowired constructor(
         logger.info("Starting the call to update subject by id")
         val professor = checkProfessor()
         if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
+            logger.warn("BAC WARNING 403: User with id '${professor.kcUuid}' tried to update subject with id '$subjectId'")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
         }
         logger.info("Subject updated by professor: ${professor.kcUuid}")
@@ -101,6 +103,7 @@ class SubjectsBl @Autowired constructor(
         logger.info("Starting the call to delete subject by id")
         val professor = checkProfessor()
         if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
+            logger.warn("BAC WARNING 403: User with id '${professor.kcUuid}' tried to delete subject with id '$subjectId'")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
         }
         logger.info("Subject deleted by professor: ${professor.kcUuid}")

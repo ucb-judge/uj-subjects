@@ -21,7 +21,7 @@ class ExceptionHandlerController {
     }
 
     @ExceptionHandler(SubjectsException::class)
-    fun handleUJUsersException(ex: SubjectsException): ResponseEntity<ResponseDto<Nothing>> {
+    fun handleUJSubjectsException(ex: SubjectsException): ResponseEntity<ResponseDto<Nothing>> {
         logger.error("Error message: ${ex.message}")
         return ResponseEntity(ResponseDto(null, ex.message!!, false), ex.httpStatus)
     }

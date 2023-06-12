@@ -46,6 +46,7 @@ class PracticesBl @Autowired constructor(
         )
         practiceDto.subject = SubjectMapper.entityToDto(subject)
         if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
+            logger.warn("BAC WARNING 403: User with id ${professor.kcUuid} is not the owner of subject with id $subjectId")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
         }
         val token = "Bearer ${keycloakBl.getToken()}"
@@ -70,14 +71,20 @@ class PracticesBl @Autowired constructor(
             "Practice not found"
         )
         if (contest.isPublic) {
-            throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "This is not a practice")
         }
 
         val professor = checkProfessor()
-        subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(
+        val subject = subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(
             ujContestsService.getContestById(practiceId, token).data!!.subject!!.subjectId!!,
             professor
-        ) ?: throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
+        )
+
+        if (subject == null) {
+            logger.warn("BAC WARNING 403: User with id ${professor.kcUuid} is not the owner of subject which contains practice with id $practiceId")
+            throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
+        }
+
         logger.info("Add problem to practice Business Logic finished")
         return ujContestsService.addProblemToContest(practiceId, problemId, token).data ?: throw SubjectsException(
             HttpStatus.BAD_REQUEST,
@@ -90,7 +97,7 @@ class PracticesBl @Autowired constructor(
         val token = "Bearer ${keycloakBl.getToken()}"
         checkPracticeAccess(practiceId, token)
         if (ujContestsService.getContestById(practiceId, token).data!!.isPublic) {
-            throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "This is not a practice")
         }
         logger.info("Get problems from practice Business Logic finished")
         return ujContestsService.getProblemsByContestId(practiceId, token).data ?: throw SubjectsException(
@@ -110,13 +117,16 @@ class PracticesBl @Autowired constructor(
         )
         if (professor != null) {
             if (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subjectId, professor) == null) {
+                logger.warn("BAC WARNING 403: User with id ${professor.kcUuid} is not the owner of subject with id $subjectId")
                 throw SubjectsException(HttpStatus.FORBIDDEN, "You are not the owner of this subject")
             }
         } else if (student != null) {
             if (studentSubjectRepository.findBySubjectAndStudentAndStatusIsTrue(subject, student) == null) {
+                logger.warn("BAC WARNING 403: User with id ${student.kcUuid} is not enrolled in subject with id $subjectId")
                 throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
             }
         } else {
+            logger.warn("BAC WARNING 403: User with id ${KeycloakSecurityContextHolder.getSubject()} is not enrolled in subject with id $subjectId")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
         }
         val practices = ujContestsService.getContests(token).data ?: throw SubjectsException(
@@ -138,7 +148,7 @@ class PracticesBl @Autowired constructor(
         val token = "Bearer ${keycloakBl.getToken()}"
         checkPracticeAccess(practiceId, token)
         if (ujContestsService.getContestById(practiceId, token).data!!.isPublic) {
-            throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "This is not a practice")
         }
         logger.info("Get score from practice Business Logic finished")
         return ujContestsService.getScoreboardByContestId(practiceId, token).data ?: throw SubjectsException(
@@ -171,7 +181,7 @@ class PracticesBl @Autowired constructor(
         val professor = professorRepository.findByKcUuidAndStatusIsTrue(KeycloakSecurityContextHolder.getSubject()!!)
         val student = studentRepository.findByKcUuidAndStatusIsTrue(KeycloakSecurityContextHolder.getSubject()!!)
         if (professor == null && student == null) {
-            logger.warn("User is not a professor nor a student")
+            logger.warn("BAC WARNING 403: User with id ${KeycloakSecurityContextHolder.getSubject()} is not enrolled in practice with id $practiceId")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
         }
         val contest = ujContestsService.getContestById(practiceId, token).data ?: throw SubjectsException(
@@ -179,7 +189,7 @@ class PracticesBl @Autowired constructor(
             "Practice not found"
         )
         if (contest.isPublic) {
-            throw SubjectsException(HttpStatus.FORBIDDEN, "This is not a practice")
+            throw SubjectsException(HttpStatus.BAD_REQUEST, "This is not a practice")
         }
         val subject = subjectRepository.findBySubjectIdAndStatusIsTrue(contest.subject!!.subjectId!!)
         if ((professor != null) && (subjectRepository.findBySubjectIdAndProfessorAndStatusIsTrue(subject!!.subjectId, professor) != null)
@@ -189,6 +199,7 @@ class PracticesBl @Autowired constructor(
         ) {
             return
         } else {
+            logger.warn("BAC WARNING 403: User with id ${KeycloakSecurityContextHolder.getSubject()} is not enrolled in practice with id $practiceId")
             throw SubjectsException(HttpStatus.FORBIDDEN, "You are not allowed to see this subject")
         }
     }
